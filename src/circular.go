@@ -9,7 +9,7 @@ import (
 type Circular struct {
 	circularChannel chan string
 	mp              sync.Map
-	mutex           sync.Mutex
+	mutex           sync.RWMutex
 }
 
 func NewCircularQueue(capacity int) (*Circular, error) {
@@ -69,6 +69,8 @@ func (st *Circular) Enqueue(key string, value any) (rKey string, rValue any, err
 				return rKey, rValue, fmt.Errorf("error while enqueueing key: %v", key)
 			}
 
+		} else {
+			return rKey, rValue, err
 		}
 	}
 
@@ -122,8 +124,8 @@ func (st *Circular) Update(key string, value any) error {
 
 func (st *Circular) Get(key string) (rValue any, err error) {
 	// locking execution to prevent any queue update while Get is being executed
-	st.mutex.Lock()
-	defer st.mutex.Unlock()
+	st.mutex.RLock()
+	defer st.mutex.RUnlock()
 
 	value, ok := st.mp.Load(key)
 	if !ok {
