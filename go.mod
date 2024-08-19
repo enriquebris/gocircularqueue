@@ -1,4 +1,4 @@
-module github.com/enriquebris/gocircularqueue/src
+module github.com/enriquebris/gocircularqueue
 
 go 1.22.6
 

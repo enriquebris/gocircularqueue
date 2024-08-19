@@ -1,4 +1,4 @@
-package src
+package gocircularqueue
 
 type CircularQueue interface {
 	// Capacity returns queue capacity
