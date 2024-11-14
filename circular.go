@@ -3,6 +3,7 @@ package gocircularqueue
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"sync"
 )
 
@@ -115,9 +116,10 @@ func (st *Circular) Update(key string, value any) error {
 		return fmt.Errorf("key: %v is not currently enqueued", key)
 	}
 
-	if currentValue != value {
+	if !reflect.DeepEqual(currentValue, value) {
 		st.mp.Store(key, value)
 	}
+
 
 	return nil
 }
