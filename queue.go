@@ -13,4 +13,8 @@ type CircularQueue interface {
 	Update(key string, value any) error
 	// Get returns the key/value for a pair currently enqueued
 	Get(key string) (rValue any, err error)
+	// Delete deletes a key/value
+	Delete(key string)
+	// GetByPrefix returns all key/value pairs that match the given prefix
+	GetByPrefix(prefix string) (map[string]any, error)
 }

@@ -3,6 +3,8 @@ package gocircularqueue
 import (
 	"errors"
 	"fmt"
+	"reflect"
+	"strings"
 	"sync"
 )
 
@@ -115,7 +117,7 @@ func (st *Circular) Update(key string, value any) error {
 		return fmt.Errorf("key: %v is not currently enqueued", key)
 	}
 
-	if currentValue != value {
+	if !reflect.DeepEqual(currentValue, value) {
 		st.mp.Store(key, value)
 	}
 
@@ -133,4 +135,34 @@ func (st *Circular) Get(key string) (rValue any, err error) {
 	}
 
 	return value, nil
+}
+
+func (st *Circular) GetByPrefix(prefix string) (results map[string]any, err error) {
+	// locking execution to prevent any queue update while GetByPrefix is being executed
+	st.mutex.RLock()
+	defer st.mutex.RUnlock()
+
+	results = make(map[string]any)
+	st.mp.Range(func(key, value any) bool {
+		// check if key is a string and contains the prefix
+		if k, ok := key.(string); ok && strings.Contains(k, prefix) {
+			results[k] = value
+		}
+		// continue iteration
+		return true
+	})
+
+	if len(results) == 0 {
+		return nil, fmt.Errorf("no keys found with prefix: %v", prefix)
+	}
+
+	return results, nil
+}
+
+func (st *Circular) Delete(key string) {
+	// locking execution to prevent any queue update while Get is being executed
+	st.mutex.RLock()
+	defer st.mutex.RUnlock()
+
+	st.mp.Delete(key)
 }
