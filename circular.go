@@ -121,6 +121,7 @@ func (st *Circular) Update(key string, value any) error {
 		st.mp.Store(key, value)
 	}
 
+
 	return nil
 }
 
