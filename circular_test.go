@@ -218,6 +218,87 @@ func (suite *CircularTestSuite) TestDeleteNonExistingKey() {
 }
 
 // ***************************************************************************************
+// ** GetByPrefix operations
+// ***************************************************************************************
+// TestGetByPrefixEmptyCache tests that GetByPrefix returns an empty map when the cache is empty.
+func (suite *CircularTestSuite) TestGetByPrefixEmptyCache() {
+	// Act: get all key-value pairs with a prefix
+	pairs, err := suite.circular.GetByPrefix("prefix")
+
+	// Assert: Verify the result is an empty map
+	suite.Error(err, "expected an error when getting by prefix in an empty cache")
+	suite.Nil(pairs, "expected an Nil when getting by prefix in an empty cache")
+}
+
+// TestGetByPrefixNoMatchingKeys tests that GetByPrefix returns an empty map when there are no keys with the given prefix.
+func (suite *CircularTestSuite) TestGetByPrefixNoMatchingKeys() {
+	// Arrange: enqueue a single key-value pair
+	suite.circular.Enqueue("other-prefix", "prefix-value")
+
+	// Act: get all key-value pairs with a prefix
+	pairs, err := suite.circular.GetByPrefix("u.1-a.2")
+
+	// Assert: Verify the result is an error and the map is nil
+	suite.Error(err, "expected an error when getting by prefix with no matching keys")
+	suite.Nil(pairs, "expected a nil map when getting by prefix with no matching keys")
+}
+
+// TestGetByPrefixSingleMatchingKey tests that GetByPrefix returns a map with a single key-value pair when there is a single key with the given prefix.
+func (suite *CircularTestSuite) TestGetByPrefixSingleMatchingKey() {
+	// Arrange: enqueue a single key-value pair
+	suite.circular.Enqueue("prefix-key", "prefix-value")
+	suite.circular.Enqueue("other-key", "other-value")
+
+	// Act: get all key-value pairs with a prefix
+	pairs, err := suite.circular.GetByPrefix("prefix")
+
+	// Assert: Verify the result contains the single key-value pair
+	suite.NoError(err, "expected no error when getting by prefix in a cache with a single matching key")
+	suite.Len(pairs, 1, "expected a single key-value pair when getting by prefix in a cache with a single matching key")
+	suite.Contains(pairs, "prefix-key", "expected the key to be present in the result")
+	suite.Equal("prefix-value", pairs["prefix-key"], "expected the value to be correct in the result")
+}
+
+// TestGetByPrefixMultipleMatchingKeys tests that GetByPrefix returns a map with all key-value pairs that have the given prefix.
+func (suite *CircularTestSuite) TestGetByPrefixMultipleMatchingKeys() {
+	// Arrange: enqueue multiple key-value pairs
+	suite.circular.Enqueue("prefix-key-1", "prefix-value-1")
+	suite.circular.Enqueue("prefix-key-2", "prefix-value-2")
+	suite.circular.Enqueue("other-key", "other-value")
+
+	// Act: get all key-value pairs with a prefix
+	pairs, err := suite.circular.GetByPrefix("prefix")
+
+	// Assert: Verify the result contains all matching key-value pairs
+	suite.NoError(err, "expected no error when getting by prefix in a cache with multiple matching keys")
+	suite.Len(pairs, 2, "expected all matching key-value pairs when getting by prefix in a cache with multiple matching keys")
+	suite.Contains(pairs, "prefix-key-1", "expected the first key to be present in the result")
+	suite.Equal("prefix-value-1", pairs["prefix-key-1"], "expected the first value to be correct in the result")
+	suite.Contains(pairs, "prefix-key-2", "expected the second key to be present in the result")
+	suite.Equal("prefix-value-2", pairs["prefix-key-2"], "expected the second value to be correct in the result")
+}
+
+// TestGetByPrefixEmptyPrefix tests getting keys with an empty prefix, which should return all keys in the cache.
+func (suite *CircularTestSuite) TestGetByPrefixEmptyPrefix() {
+	// enqueue pairs with different prefixes
+	suite.circular.Enqueue("u.1-a.2", "value1")
+	suite.circular.Enqueue("u.2-a.2", "value2")
+	suite.circular.Enqueue("u.3-a.3", "value3")
+
+	// get keys with empty prefix
+	results, err := suite.circular.GetByPrefix("")
+	// no error expected
+	suite.NoError(err)
+	// expected results (all keys)
+	expected := map[string]any{
+		"u.1-a.2": "value1",
+		"u.2-a.2": "value2",
+		"u.3-a.3": "value3",
+	}
+	suite.Equal(expected, results)
+}
+
+// ***************************************************************************************
 // ** Run suite
 // ***************************************************************************************
 
