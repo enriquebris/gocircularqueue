@@ -188,6 +188,36 @@ func (suite *CircularTestSuite) TestUpdateRandomPair() {
 }
 
 // ***************************************************************************************
+// ** Delete operations
+// ***************************************************************************************
+// TestDeleteExistingKey delete an existing key
+func (suite *CircularTestSuite) TestDeleteExistingKey() {
+	// enqueue single pair
+	suite.circular.Enqueue("0", 0)
+
+	// delete key
+	suite.circular.Delete("0")
+
+	// Verify that the key no longer exists
+	rValue, err := suite.circular.Get("0")
+	// Error is expected since the key should not exist
+	suite.Error(err, "expected an error when getting a deleted key")
+	suite.Nil(rValue, "expected the return value to be nil for a deleted key")
+}
+
+// TestDeleteNonExistingKey tests that deleting a non-existing key does not cause any errors or side effects.
+func (suite *CircularTestSuite) TestDeleteNonExistingKey() {
+	// Arrange: ensure the cache is empty
+	suite.Equal(0, suite.circular.Length(), "expected cache to be empty before test")
+
+	// Act: try to delete a non-existing key
+	suite.circular.Delete("nonexistent")
+
+	// Assert: Verify the cache is still empty
+	suite.Equal(0, suite.circular.Length(), "expected cache to remain empty after deleting a non-existing key")
+}
+
+// ***************************************************************************************
 // ** Run suite
 // ***************************************************************************************
 
