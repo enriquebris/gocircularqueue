@@ -13,4 +13,6 @@ type CircularQueue interface {
 	Update(key string, value any) error
 	// Get returns the key/value for a pair currently enqueued
 	Get(key string) (rValue any, err error)
+	// Delete deletes a key/value
+	Delete(key string) error
 }

@@ -136,3 +136,11 @@ func (st *Circular) Get(key string) (rValue any, err error) {
 
 	return value, nil
 }
+
+func (st *Circular) Delete(key string) {
+	// locking execution to prevent any queue update while Get is being executed
+	st.mutex.RLock()
+	defer st.mutex.RUnlock()
+
+	st.mp.Delete(key)
+}
