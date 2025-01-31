@@ -15,4 +15,6 @@ type CircularQueue interface {
 	Get(key string) (rValue any, err error)
 	// Delete deletes a key/value
 	Delete(key string) error
+	// GetByPrefix returns all key/value pairs that match the given prefix
+	GetByPrefix(prefix string) (map[string]any, error)
 }
